@@ -1,0 +1,131 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>StyleAlign</title>
+<link href="./style.css" rel="stylesheet">
+<script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+<style>
+  #scene { 
+      width: 93%; /* Smaller width */
+      height: 450px; /* Smaller height */
+      margin: auto;
+  }
+</style>
+</head>
+
+<body>
+<div class="content">
+  <h1><strong>AnyLens: A Generative Diffusion Model with Any Rendering Lens</strong></h1>
+  <p id="authors"><a href="https://scholar.google.com/citations?user=imBjSgUAAAAJ">Andrey Voynov</a> <a href="https://amirhertz.github.io/">Amir Hertz</a> <a href="https://scholar.google.com/citations?user=uiFoSGMAAAAJ">Moab Arar</a> <a href="">Shlomi Fruchter<sup>* 1</sup></a> <a href="https://danielcohenor.com/">Daniel Cohen-Or<sup>* 1,2</sup></a><br>
+    <br>
+    <span style="font-size: 16px"><br>
+        <sup>1</sup> Google Research <sup>2</sup> Tel Aviv University <br>
+        <sup>*</sup>Indicates Equal Advising</span>
+        </p>
+
+  <font size="+2">
+      <p style="text-align: center;">
+        <a href="./data/main.pdf" target="_blank">[Paper]</a> &nbsp;&nbsp;&nbsp;&nbsp;
+      </p>
+  </font>
+
+  <!-- Thumbnails for selecting different panoramas -->
+  
+  <div class="thumbnails">
+    <img src="./data/panoramas/fjord3.png" class="thumbnail selected" id="thumbnail1">
+    <img src="./data/panoramas/castle1.png" class="thumbnail" id="thumbnail2">
+    <img src="./data/panoramas/mushrooms2.png" class="thumbnail" id="thumbnail3">
+  </div>
+  <br>
+  <!-- A-Frame Scene -->
+  <a-scene id="scene" height="200px" embedded>
+      <a-sky id="panorama" src="data/panoramas/fjord3.png" ></a-sky>
+      <a-camera look-controls="reverseMouseDrag: true; sensitivity: 0.2;" fov="80"></a-camera>
+  </a-scene>
+
+  <script>
+      // Function to change the panorama
+      function changePanorama(imgSrc, selectedThumbnail) {
+          document.getElementById('panorama').setAttribute('src', imgSrc);
+
+          // Remove 'selected' class from all thumbnails
+          document.querySelectorAll('.thumbnail').forEach(function(thumbnail) {
+              thumbnail.classList.remove('selected');
+          });
+          // Add 'selected' class to the clicked thumbnail
+          document.getElementById(selectedThumbnail).classList.add('selected');
+      }
+
+      // Event listeners for the thumbnails
+      document.getElementById('thumbnail1').addEventListener('click', function() {
+          changePanorama('data/panoramas/fjord3.png', 'thumbnail1');
+      });
+      document.getElementById('thumbnail2').addEventListener('click', function() {
+          changePanorama('data/panoramas/castle1.png', 'thumbnail2');
+      });
+      document.getElementById('thumbnail3').addEventListener('click', function() {
+          changePanorama('data/panoramas/mushrooms2.png', 'thumbnail3');
+      });
+  </script>
+
+  <h3 style="text-align: center;">AnyLens is the diffusion model that enables rendering with any lens geometry.</h3>
+</div>
+
+
+<div class="content">
+  <h2 style="text-align:center;">Abstract</h2>
+  <p>State-of-the-art diffusion models can generate highly realistic images based on various conditioning like text, segmentation, and depth. However, an essential aspect often overlooked is the specific camera geometry used during image capture. The influence of different optical systems on the final scene appearance is frequently overlooked. This study introduces a framework that intimately integrates a text-to-image diffusion model with the particular lens geometry used in image rendering. Our method is based on a per-pixel coordinate conditioning method, enabling the control over the rendering geometry. Notably, we demonstrate the manipulation of curvature properties, achieving diverse visual effects, such as fish-eye, panoramic views, and spherical texturing using a single diffusion model.</p>
+  <img class="summary-img" src="./data/trains.jpg" style="width:100%;"> <br>
+</div>
+
+
+<div class="content">
+    <h2>Problem statement</h2>
+    <p> Suppose, we wish to have an image with a fish-eye effect. Applying a lens geometry transformation in a post-process after the generation of the image produces low-quality image in highly expanded regions. Moreover, the corner regions which are behind the default image canvas are left uncovered.</p>
+    <br>
+    <img class="summary-img" src="./data/naive.jpg" style="width:100%;"> <br>
+  </div>
+
+<div class="content">
+  <h2>Per-pixel coordinates conditioning</h2>
+  <p> We go beyond projective camera models, virtually allowing any grid warps as conditioning. We implement this with a per-pixel coordinate conditioning provided to the diffusion model, which is the spatial positions of a pixel in an unwarped image.</p>
+  <br>
+  <img class="summary-img" src="./data/method.jpg" style="width:100%;"> <br>
+  <br>
+  <p>The training sample is processed with a random distortion, applied over both the image and normalized coordinates grid. Then, the warped image is noised with an additive noise &epsilon;<sub>t</sub>  correspondent to the denoising step t. The denoising U-net model takes the noised image concatenated with the warping field and predicts the denoised image. All the self-attention layers weights are re-weighted according to the original image pixels density. For more complex surfaces instead of the positional conditioning we use the metric tensor coefficients conditioning.</p>
+</div>
+
+
+<div class="content">
+  <h2>Results</h2>
+  <p>Comparison with the textual baseline: left image is generated with "fisheye" conditioning added to the text, while on the rightsecond we use the proposed per-pixel coordinates conditioning. Notably, the fisheye effect assured by text only is not aligned with the actual camera geometry. Thus, the undistorted image on the left still does not look rectified.</p>
+  <img class="summary-img" src="./data/sbs.jpg" style="width:100%;">
+  <br>
+  <p>Spherical textures generation without (left) and with (right) the sphere-aware metrics conditioning. Notably, the texture generated with baseline has non-uniform bins sizes and texture-absorbing artifacts on the poles.</p>
+  <img class="summary-img" src="./data/animation_caption.png" style="width:100%;">
+  <img class="summary-img" src="./data/candy.gif" style="width:100%;">
+</div>
+
+
+<div class="content">
+  <h2>BibTex</h2>
+  <code> @article{hertz2023StyleAligned,<br>
+  &nbsp;&nbsp;title={AnyLens: A Generative Diffusion Model with Any Rendering Lens},<br>
+  &nbsp;&nbsp;author={Voynov, Andrey and Hertz, Amir and Arar, Moab and Fruchter, Shlomi and Cohen-Or, Daniel},<br>
+  &nbsp;&nbsp;booktitle={arXiv preprint arxiv:},<br>
+  &nbsp;&nbsp;year={2023}<br>
+  } </code> 
+</div>
+
+
+<div class="content" id="acknowledgements">
+  <p><strong>Acknowledgements</strong>:
+    We thank Chu Qinghao, Yael Vinker, Yael Pritch and Yonatan Shafir for their valuable inputs that helped improve this work.
+    <br>
+    The panorama demo is based on https://github.com/aframevr/aframe
+    <!-- Recycling a familiar <a href="https://chail.github.io/latent-composition/">template</a> ;). --> 
+  </p>
+</div>
+</body>
+
+</html>
